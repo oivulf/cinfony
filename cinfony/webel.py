@@ -18,11 +18,11 @@ Global variables:
 
 import re
 import os
-import urllib2
-import StringIO
+import urllib.request, urllib.error, urllib.parse
+import io
 
 try:
-    import Tkinter as tk
+    import tkinter as tk
     import Image as PIL
     import ImageTk as piltk
 except ImportError:
@@ -64,14 +64,14 @@ def _quo(text, safe="/"):
             c = chr(i)
             safe_map[c] = (c in safe) and c or ('%%%02X' % i)
         _safemaps[cachekey] = safe_map
-    res = map(safe_map.__getitem__, text)
+    res = list(map(safe_map.__getitem__, text))
     return ''.join(res)
 
 def _makeserver(serverurl):
     """Curry the name of the server"""
     def server(*urlcomponents):       
         url = "%s/" % serverurl + "/".join(urlcomponents)
-        resp = urllib2.urlopen(url)
+        resp = urllib.request.urlopen(url)
         return resp.read()
     return server
 
@@ -156,7 +156,7 @@ class Outputfile(object):
         if self.file.closed:
             raise IOError("Outputfile instance is closed.")
         output = molecule.write(self.format)
-        print >> self.file, output
+        print(output, file=self.file)
 
     def close(self):
         """Close the Outputfile to further writing."""
@@ -264,7 +264,7 @@ class Molecule(object):
         elif format == "names":
             try:
                 output = nci(_quo(self.smiles), "%s" % format).rstrip().split("\n")
-            except urllib2.URLError, e:
+            except urllib.error.URLError as e:
                 if e.code == 404:
                     output = []
         elif format in ['inchi', 'inchikey']:
@@ -274,7 +274,7 @@ class Molecule(object):
             format = format + "_name"
             try:
                 output = nci(_quo(self.smiles), "%s" % format).rstrip()
-            except urllib2.URLError, e:
+            except urllib.error.URLError as e:
                 if e.code == 404:
                     output = ""
         else:
@@ -284,7 +284,7 @@ class Molecule(object):
             if not overwrite and os.path.isfile(filename):
                 raise IOError("%s already exists. Use 'overwrite=True' to overwrite it." % filename)
             outputfile = open(filename, "w")
-            print >> outputfile, output
+            print(output, file=outputfile)
             outputfile.close()
         else:
             return output
@@ -304,18 +304,18 @@ class Molecule(object):
         """
         imagedata = nci(_quo(self.smiles), "image")
         if filename:
-            print >> open(filename, "wb"), imagedata
+            print(imagedata, file=open(filename, "wb"))
         if show:
             if not tk:
                 errormessage = ("Tkinter or Python Imaging "
                                 "Library not found, but is required for image "
                                 "display. See installation instructions for "
                                 "more information.")
-                raise ImportError, errormessage                 
+                raise ImportError(errormessage)                 
             root = tk.Tk()
             root.title(self.smiles)
             frame = tk.Frame(root, colormap="new", visual='truecolor').pack()
-            image = PIL.open(StringIO.StringIO(imagedata))
+            image = PIL.open(io.StringIO(imagedata))
             imagedata = piltk.PhotoImage(image)
             label = tk.Label(frame, image=imagedata).pack()
             quitbutton = tk.Button(root, text="Close", command=root.destroy).pack(fill=tk.X)

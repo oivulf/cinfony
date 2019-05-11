@@ -61,7 +61,7 @@ def _getdescdict():
     for desc in de.getDescriptorInstances():
         spec = desc.getSpecification()
         descclass = de.getDictionaryClass(spec)
-        if "proteinDescriptor" not in descclass:
+        if descclass and "proteinDescriptor" not in descclass:
             # Using str() for unicode conversion
             name = str(spec.getSpecificationReference().split("#")[-1])
             descdict[name] = desc
@@ -92,7 +92,7 @@ informats = dict([(_x, _formats[_x]) for _x in ['smi', 'sdf', 'mol', 'inchi']])
 _outformats = {'mol': cdk.io.MDLV2000Writer,
                'mol2': cdk.io.Mol2Writer,
                'sdf': cdk.io.SDFWriter}
-outformats = dict([(_x, _formats[_x]) for _x in _outformats.keys() + ['can', 'smi', 'inchi', 'inchikey']])
+outformats = dict([(_x, _formats[_x]) for _x in list(_outformats.keys()) + ['can', 'smi', 'inchi', 'inchikey']])
 """A dictionary of supported output formats"""
 forcefields = list(cdk.modeling.builder3d.ModelBuilder3D.getInstance(_chemobjbuilder).getFfTypes())
 """A list of supported forcefields"""
@@ -102,7 +102,7 @@ _isofact = cdk.config.Isotopes.getInstance()
 _bondtypes = {1: cdk.CDKConstants.BONDORDER_SINGLE,
               2: cdk.CDKConstants.BONDORDER_DOUBLE,
               3: cdk.CDKConstants.BONDORDER_TRIPLE}
-_revbondtypes = dict([(_y,_x) for (_x,_y) in _bondtypes.iteritems()])
+_revbondtypes = dict([(_y,_x) for (_x,_y) in _bondtypes.items()])
 
 def _intvalue(integer):
     """Paper over some differences between JPype and Jython"""
