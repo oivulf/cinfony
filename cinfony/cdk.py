@@ -35,9 +35,8 @@ else:
     from jpype import *
 
     if not isJVMStarted():
-        _jvm = os.environ['JPYPE_JVM']
-        if _jvm[0] == '"': # Remove trailing quotes
-            _jvm = _jvm[1:-1]
+        # _jvm = os.environ['JPYPE_JVM']
+        _jvm=getDefaultJVMPath()
         _cp = os.environ['CLASSPATH']
         startJVM(_jvm, "-Djava.class.path=" + _cp)
 
@@ -70,15 +69,16 @@ def _getdescdict():
 _descdict = _getdescdict()
 descs = _descdict.keys()
 """A list of supported descriptors"""
-_fingerprinters = {"daylight":cdk.fingerprint.Fingerprinter
-                            , "graph":cdk.fingerprint.GraphOnlyFingerprinter
-                            , "maccs":cdk.fingerprint.MACCSFingerprinter
-                            , "estate":cdk.fingerprint.EStateFingerprinter
-                            , "extended":cdk.fingerprint.ExtendedFingerprinter
-                            , "hybridization":cdk.fingerprint.HybridizationFingerprinter
-                            , "klekota-roth":cdk.fingerprint.KlekotaRothFingerprinter
-                            , "pubchem":cdk.fingerprint.PubchemFingerprinter
-                            , "substructure":cdk.fingerprint.SubstructureFingerprinter
+_fingerprinters = {"daylight":cdk.fingerprint.Fingerprinter()
+                            , "graph":cdk.fingerprint.GraphOnlyFingerprinter()
+                            , "maccs":cdk.fingerprint.MACCSFingerprinter()
+                            , "estate":cdk.fingerprint.EStateFingerprinter()
+                            , "extended":cdk.fingerprint.ExtendedFingerprinter()
+                            , "hybridization":cdk.fingerprint.HybridizationFingerprinter()
+                            , "klekota-roth":cdk.fingerprint.KlekotaRothFingerprinter()
+                            , "pubchem":cdk.fingerprint.PubchemFingerprinter(
+                                cdk.silent.SilentChemObjectBuilder.getInstance())
+                            , "substructure":cdk.fingerprint.SubstructureFingerprinter()
                             }
 fps = _fingerprinters.keys()
 """A list of supported fingerprint types"""
@@ -402,7 +402,7 @@ class Molecule(object):
         """
         fp = fp.lower()
         if fp in _fingerprinters:
-            fingerprinter = _fingerprinters[fp]()
+            fingerprinter = _fingerprinters[fp]
         else:
             raise ValueError("%s is not a recognised CDK Fingerprint type" % fp)
         return Fingerprint(fingerprinter.getBitFingerprint(self.Molecule).asBitSet())
